@@ -9,10 +9,10 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.eventy</groupId>
-    <artifactId>eventy-event-service</artifactId>
+    <artifactId>eventy-events-service</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>eventy-event-service</name>
-    <description>eventy-event-service</description>
+    <name>eventy-events-service</name>
+    <description>eventy-events-service</description>
     <url/>
     <licenses>
         <license/>
