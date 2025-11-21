@@ -88,6 +88,68 @@ public class EventService {
         eventRepository.deleteById(id);
     }
 
+
+    // --- UPDATE ---
+
+    @Transactional
+    public EventResponse updateEvent(UUID id, EventRequest request) {
+        Event event = eventRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Event not found with ID: " + id));
+
+        // Mise à jour des relations si elles changent
+        if (request.getEventTypeId() != null) {
+            EventType type = eventTypeRepository.findById(request.getEventTypeId())
+                    .orElseThrow(() -> new EntityNotFoundException("EventType not found"));
+            event.setEventType(type);
+        }
+
+        if (request.getCategoryId() != null) {
+            EventCategory category = categoryRepository.findById(request.getCategoryId())
+                    .orElseThrow(() -> new EntityNotFoundException("EventCategory not found"));
+            event.setCategory(category);
+        }
+
+        // Mise à jour des champs simples
+        event.setName(request.getName());
+        event.setDescription(request.getDescription());
+        event.setStartDate(LocalDate.from(request.getStartDate()));
+        event.setEndDate(LocalDate.from(request.getEndDate()));
+        event.setLocation(request.getLocation());
+        event.setFullAddress(request.getFullAddress());
+        event.setImageUrl(request.getImageUrl());
+
+        return mapToResponse(eventRepository.save(event));
+    }
+
+    @Transactional
+    public EventResponse updateEventStatus(UUID id, EventStatus status) {
+        Event event = eventRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Event not found with ID: " + id));
+
+        event.setStatus(status);
+        return mapToResponse(eventRepository.save(event));
+    }
+
+    @Transactional(readOnly = true)
+    public List<EventResponse> getEventsByStatus(EventStatus status) {
+        return eventRepository.findByStatus(status).stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<EventResponse> getEventsByCreator(UUID creatorId) {
+        return eventRepository.findByCreatorId(creatorId).stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<EventResponse> getUpcomingEvents() {
+        return eventRepository.findByStartDateAfter(LocalDateTime.now()).stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+    }
     // Mapper utilitaire (pourrait être remplacé par MapStruct)
     private EventResponse mapToResponse(Event event) {
         return EventResponse.builder()

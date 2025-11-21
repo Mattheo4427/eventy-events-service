@@ -1,5 +1,6 @@
 package com.eventy.eventyeventservice.controller;
 
+import com.eventy.eventyeventservice.dto.EventRequest;
 import com.eventy.eventyeventservice.dto.EventResponse;
 import com.eventy.eventyeventservice.model.Event;
 import com.eventy.eventyeventservice.model.EventStatus;
@@ -44,72 +45,48 @@ public class EventController {
         return ResponseEntity.ok(eventService.getEventById(id));
     }
 
-    /**
-     * Get events by status
-     */
+    // AJOUT : Get events by status
     @GetMapping("/status/{status}")
     public ResponseEntity<List<EventResponse>> getEventsByStatus(@PathVariable EventStatus status) {
-        return ResponseEntity.ok(eventService.getByStatus(status));
+        return ResponseEntity.ok(eventService.getEventsByStatus(status));
     }
 
-    /**
-     * Get events created by a specific user
-     */
+    // AJOUT : Get events created by a specific user
     @GetMapping("/creator/{creatorId}")
     public ResponseEntity<List<EventResponse>> getEventsByCreator(@PathVariable UUID creatorId) {
-        return ResponseEntity.ok(eventRepository.findByCreatorId(creatorId));
+        return ResponseEntity.ok(eventService.getEventsByCreator(creatorId));
     }
 
-    /**
-     * Get upcoming events
-     */
+    // AJOUT : Get upcoming events
     @GetMapping("/upcoming")
-    public ResponseEntity<List<Event>> getUpcomingEvents() {
-        return ResponseEntity.ok(eventRepository.findByStartDateAfter(LocalDate.now()));
+    public ResponseEntity<List<EventResponse>> getUpcomingEvents() {
+        return ResponseEntity.ok(eventService.getUpcomingEvents());
     }
 
     /**
      * Create a new event
      */
     @PostMapping
-    public ResponseEntity<EventResponse> createEvent(@Valid @RequestBody Event event) {
-        if (event.getCreationDate() == null) {
-            event.setCreationDate(LocalDate.now());
-        }
-        if (event.getStatus() == null) {
-            event.setStatus(EventStatus.active);
-        }
-        Event savedEvent = eventRepository.save(event);
-        return ResponseEntity.status(HttpStatus.CREATED).body(savedEvent);
+    public ResponseEntity<EventResponse> createEvent(@Valid @RequestBody EventRequest request) {
+        EventResponse createdEvent = eventService.createEvent(request);
+        return new ResponseEntity<>(createdEvent, HttpStatus.CREATED);
     }
 
     /**
      * Update an existing event
      */
     @PutMapping("/{id}")
-    public ResponseEntity<Event> updateEvent(@PathVariable UUID id, @Valid @RequestBody Event event) {
-        return eventRepository.findById(id)
-                .map(existingEvent -> {
-                    event.setEventId(id);
-                    event.setCreationDate(existingEvent.getCreationDate());
-                    return ResponseEntity.ok(eventRepository.save(event));
-                })
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<EventResponse> updateEvent(@PathVariable UUID id, @Valid @RequestBody EventRequest request) {
+        return ResponseEntity.ok(eventService.updateEvent(id, request));
     }
 
     /**
-     * Update event status
+     * Update event status (PATCH)
      */
     @PatchMapping("/{id}/status")
-    public ResponseEntity<Event> updateEventStatus(@PathVariable UUID id, @RequestParam EventStatus status) {
-        return eventRepository.findById(id)
-                .map(event -> {
-                    event.setStatus(status);
-                    return ResponseEntity.ok(eventRepository.save(event));
-                })
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<EventResponse> updateEventStatus(@PathVariable UUID id, @RequestParam EventStatus status) {
+        return ResponseEntity.ok(eventService.updateEventStatus(id, status));
     }
-
     /**
      * Delete an event
      */

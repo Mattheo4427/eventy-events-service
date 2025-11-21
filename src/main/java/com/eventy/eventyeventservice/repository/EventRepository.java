@@ -38,7 +38,7 @@ public interface EventRepository extends JpaRepository<Event, UUID> {
     /**
      Filtre par type d'événement
      */
-    List<Event> findByEventTypeId(UUID eventTypeId);
+    List<Event> findByEventTypeEventTypeId(UUID eventTypeId);
 
     /**
      * Find all events by status
