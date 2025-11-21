@@ -1,8 +1,11 @@
 package com.eventy.eventyeventservice.controller;
 
+import com.eventy.eventyeventservice.dto.EventRequest;
+import com.eventy.eventyeventservice.dto.EventResponse;
 import com.eventy.eventyeventservice.model.Event;
 import com.eventy.eventyeventservice.model.EventStatus;
 import com.eventy.eventyeventservice.repository.EventRepository;
+import com.eventy.eventyeventservice.service.EventService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,106 +23,77 @@ import java.util.UUID;
 @CrossOrigin(origins = "*")
 public class EventController {
 
-    private final EventRepository eventRepository;
+    private final EventService eventService;
 
-    public EventController(EventRepository eventRepository) {
-        this.eventRepository = eventRepository;
+    public EventController(EventService eventService) {
+        this.eventService = eventService;
     }
 
     /**
      * Get all events
      */
     @GetMapping
-    public ResponseEntity<List<Event>> getAllEvents() {
-        return ResponseEntity.ok(eventRepository.findAll());
+    public ResponseEntity<List<EventResponse>> getAllEvents() {
+        return ResponseEntity.ok(eventService.getAllEvents());
     }
 
     /**
      * Get an event by its ID
      */
     @GetMapping("/{id}")
-    public ResponseEntity<Event> getEventById(@PathVariable UUID id) {
-        return eventRepository.findById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<EventResponse> getEventById(@PathVariable UUID id) {
+        return ResponseEntity.ok(eventService.getEventById(id));
     }
 
-    /**
-     * Get events by status
-     */
+    // AJOUT : Get events by status
     @GetMapping("/status/{status}")
-    public ResponseEntity<List<Event>> getEventsByStatus(@PathVariable EventStatus status) {
-        return ResponseEntity.ok(eventRepository.findByStatus(status));
+    public ResponseEntity<List<EventResponse>> getEventsByStatus(@PathVariable EventStatus status) {
+        return ResponseEntity.ok(eventService.getEventsByStatus(status));
     }
 
-    /**
-     * Get events created by a specific user
-     */
+    // AJOUT : Get events created by a specific user
     @GetMapping("/creator/{creatorId}")
-    public ResponseEntity<List<Event>> getEventsByCreator(@PathVariable UUID creatorId) {
-        return ResponseEntity.ok(eventRepository.findByCreatorId(creatorId));
+    public ResponseEntity<List<EventResponse>> getEventsByCreator(@PathVariable UUID creatorId) {
+        return ResponseEntity.ok(eventService.getEventsByCreator(creatorId));
     }
 
-    /**
-     * Get upcoming events
-     */
+    // AJOUT : Get upcoming events
     @GetMapping("/upcoming")
-    public ResponseEntity<List<Event>> getUpcomingEvents() {
-        return ResponseEntity.ok(eventRepository.findByStartDateAfter(LocalDate.now()));
+    public ResponseEntity<List<EventResponse>> getUpcomingEvents() {
+        return ResponseEntity.ok(eventService.getUpcomingEvents());
     }
 
     /**
      * Create a new event
      */
     @PostMapping
-    public ResponseEntity<Event> createEvent(@Valid @RequestBody Event event) {
-        if (event.getCreationDate() == null) {
-            event.setCreationDate(LocalDate.now());
-        }
-        if (event.getStatus() == null) {
-            event.setStatus(EventStatus.active);
-        }
-        Event savedEvent = eventRepository.save(event);
-        return ResponseEntity.status(HttpStatus.CREATED).body(savedEvent);
+    public ResponseEntity<EventResponse> createEvent(@Valid @RequestBody EventRequest request) {
+        EventResponse createdEvent = eventService.createEvent(request);
+        return new ResponseEntity<>(createdEvent, HttpStatus.CREATED);
     }
 
     /**
      * Update an existing event
      */
     @PutMapping("/{id}")
-    public ResponseEntity<Event> updateEvent(@PathVariable UUID id, @Valid @RequestBody Event event) {
-        return eventRepository.findById(id)
-                .map(existingEvent -> {
-                    event.setEventId(id);
-                    event.setCreationDate(existingEvent.getCreationDate());
-                    return ResponseEntity.ok(eventRepository.save(event));
-                })
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<EventResponse> updateEvent(@PathVariable UUID id, @Valid @RequestBody EventRequest request) {
+        return ResponseEntity.ok(eventService.updateEvent(id, request));
     }
 
     /**
-     * Update event status
+     * Update event status (PATCH)
      */
     @PatchMapping("/{id}/status")
-    public ResponseEntity<Event> updateEventStatus(@PathVariable UUID id, @RequestParam EventStatus status) {
-        return eventRepository.findById(id)
-                .map(event -> {
-                    event.setStatus(status);
-                    return ResponseEntity.ok(eventRepository.save(event));
-                })
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<EventResponse> updateEventStatus(@PathVariable UUID id, @RequestParam EventStatus status) {
+        return ResponseEntity.ok(eventService.updateEventStatus(id, status));
     }
-
     /**
      * Delete an event
      */
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteEvent(@PathVariable UUID id) {
-        if (eventRepository.existsById(id)) {
-            eventRepository.deleteById(id);
-            return ResponseEntity.noContent().build();
-        }
-        return ResponseEntity.notFound().build();
+        eventService.deleteEvent(id);
+        return ResponseEntity.noContent().build();
     }
 }
 
