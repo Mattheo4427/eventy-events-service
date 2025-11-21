@@ -1,8 +1,10 @@
 package com.eventy.eventyeventservice.controller;
 
+import com.eventy.eventyeventservice.dto.EventResponse;
 import com.eventy.eventyeventservice.model.Event;
 import com.eventy.eventyeventservice.model.EventStatus;
 import com.eventy.eventyeventservice.repository.EventRepository;
+import com.eventy.eventyeventservice.service.EventService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,43 +22,41 @@ import java.util.UUID;
 @CrossOrigin(origins = "*")
 public class EventController {
 
-    private final EventRepository eventRepository;
+    private final EventService eventService;
 
-    public EventController(EventRepository eventRepository) {
-        this.eventRepository = eventRepository;
+    public EventController(EventService eventService) {
+        this.eventService = eventService;
     }
 
     /**
      * Get all events
      */
     @GetMapping
-    public ResponseEntity<List<Event>> getAllEvents() {
-        return ResponseEntity.ok(eventRepository.findAll());
+    public ResponseEntity<List<EventResponse>> getAllEvents() {
+        return ResponseEntity.ok(eventService.getAllEvents());
     }
 
     /**
      * Get an event by its ID
      */
     @GetMapping("/{id}")
-    public ResponseEntity<Event> getEventById(@PathVariable UUID id) {
-        return eventRepository.findById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<EventResponse> getEventById(@PathVariable UUID id) {
+        return ResponseEntity.ok(eventService.getEventById(id));
     }
 
     /**
      * Get events by status
      */
     @GetMapping("/status/{status}")
-    public ResponseEntity<List<Event>> getEventsByStatus(@PathVariable EventStatus status) {
-        return ResponseEntity.ok(eventRepository.findByStatus(status));
+    public ResponseEntity<List<EventResponse>> getEventsByStatus(@PathVariable EventStatus status) {
+        return ResponseEntity.ok(eventService.getByStatus(status));
     }
 
     /**
      * Get events created by a specific user
      */
     @GetMapping("/creator/{creatorId}")
-    public ResponseEntity<List<Event>> getEventsByCreator(@PathVariable UUID creatorId) {
+    public ResponseEntity<List<EventResponse>> getEventsByCreator(@PathVariable UUID creatorId) {
         return ResponseEntity.ok(eventRepository.findByCreatorId(creatorId));
     }
 
@@ -72,7 +72,7 @@ public class EventController {
      * Create a new event
      */
     @PostMapping
-    public ResponseEntity<Event> createEvent(@Valid @RequestBody Event event) {
+    public ResponseEntity<EventResponse> createEvent(@Valid @RequestBody Event event) {
         if (event.getCreationDate() == null) {
             event.setCreationDate(LocalDate.now());
         }
@@ -115,11 +115,8 @@ public class EventController {
      */
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteEvent(@PathVariable UUID id) {
-        if (eventRepository.existsById(id)) {
-            eventRepository.deleteById(id);
-            return ResponseEntity.noContent().build();
-        }
-        return ResponseEntity.notFound().build();
+        eventService.deleteEvent(id);
+        return ResponseEntity.noContent().build();
     }
 }
 
