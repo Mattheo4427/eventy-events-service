@@ -55,5 +55,16 @@ public interface EventRepository extends JpaRepository<Event, UUID> {
      */
     List<Event> findByStartDateAfter(LocalDate date);
 
+    @Query("SELECT e FROM Event e WHERE " +
+           "(:keyword IS NULL OR LOWER(CAST(e.name AS string)) LIKE LOWER(CONCAT('%', CAST(:keyword AS string), '%')) OR LOWER(CAST(e.description AS string)) LIKE LOWER(CONCAT('%', CAST(:keyword AS string), '%'))) AND " +
+           "(:location IS NULL OR LOWER(CAST(e.location AS string)) LIKE LOWER(CONCAT('%', CAST(:location AS string), '%'))) AND " +
+           "(:categoryId IS NULL OR e.category.categoryId = :categoryId) AND " +
+           "e.status = 'active'")
+    List<Event> searchEvents(
+        @Param("keyword") String keyword, 
+        @Param("location") String location, 
+        @Param("categoryId") UUID categoryId
+    );
+
 }
 
