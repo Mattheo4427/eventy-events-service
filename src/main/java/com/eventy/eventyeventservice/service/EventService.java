@@ -62,6 +62,13 @@ public class EventService {
     }
 
     @Transactional(readOnly = true)
+    public List<EventResponse> getAvailableEvents(String keyword, String location, UUID categoryId) {
+    return eventRepository.searchEvents(keyword, location, categoryId).stream()
+            .map(this::mapToResponse)
+            .collect(Collectors.toList());
+}
+
+    @Transactional(readOnly = true)
     public List<EventResponse> getAllEvents() {
         return eventRepository.findAll().stream()
                 .map(this::mapToResponse)

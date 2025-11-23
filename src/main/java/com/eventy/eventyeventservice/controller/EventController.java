@@ -30,14 +30,6 @@ public class EventController {
     }
 
     /**
-     * Get all events
-     */
-    @GetMapping
-    public ResponseEntity<List<EventResponse>> getAllEvents() {
-        return ResponseEntity.ok(eventService.getAllEvents());
-    }
-
-    /**
      * Get an event by its ID
      */
     @GetMapping("/{id}")
@@ -61,6 +53,17 @@ public class EventController {
     @GetMapping("/upcoming")
     public ResponseEntity<List<EventResponse>> getUpcomingEvents() {
         return ResponseEntity.ok(eventService.getUpcomingEvents());
+    }
+
+    // Dans EventController
+    @GetMapping
+    public ResponseEntity<List<EventResponse>> getAllEvents(
+        @RequestParam(required = false) String search,
+        @RequestParam(required = false) String location,
+        @RequestParam(required = false) UUID categoryId) {
+    
+    // Utilise la nouvelle méthode du service
+    return ResponseEntity.ok(eventService.getAvailableEvents(search, location, categoryId));
     }
 
     /**
