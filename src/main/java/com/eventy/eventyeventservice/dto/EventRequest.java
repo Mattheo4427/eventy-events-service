@@ -4,9 +4,15 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class EventRequest {
     @NotBlank(message = "Le nom est obligatoire")
     private String name;

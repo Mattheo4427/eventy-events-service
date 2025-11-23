@@ -2,6 +2,8 @@ package com.eventy.eventyeventservice.model;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -11,6 +13,8 @@ import java.util.UUID;
 @Entity
 @Table(name = "event")
 @Data
+@Builder
+@AllArgsConstructor
 @NoArgsConstructor
 public class Event {
 
